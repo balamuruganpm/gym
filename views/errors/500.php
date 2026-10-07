@@ -1,0 +1,15 @@
+<div class="fp-card text-center py-5 my-4 mx-auto" style="max-width: 600px;">
+    <div class="mb-3 text-danger">
+        <i class="bi bi-exclamation-triangle-fill display-1"></i>
+    </div>
+    <h2 class="fw-bold text-white-glow mb-2">500 Server Error</h2>
+    <p class="text-secondary mb-4"><?= isset($message) ? htmlspecialchars($message, ENT_QUOTES, 'UTF-8') : 'An unexpected server error occurred. Our team has been notified.' ?></p>
+    <div>
+        <a href="<?= BASE_URL ?>/" class="btn btn-fp-primary me-2">
+            <i class="bi bi-house-door me-1"></i> Return Home
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Go Back
+        </a>
+    </div>
+</div>
