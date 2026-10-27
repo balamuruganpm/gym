@@ -1,758 +1,617 @@
-For a gym, I would not make this just an **attendance + payment website**. The useful product is a small **Gym Management + Automation System** where the owner gets automatic information without manually checking records.
+Bala, let's make this a complete PHP + MySQL product that you can build using Google Antigravity as your development agent. We'll define the product requirements, features, database, architecture, security, and required skills in one specification so Antigravity can build it systematically.
 
-### Core system
+The goal is a real, functional application—not just a dashboard UI with dummy data.
 
-| Module | What it does |
-|---|---|
-| **Member Registration** | New member profile, joining date, plan, duration, amount, contact |
-| **Membership Plans** | Monthly / quarterly / half-yearly / yearly plans |
-| **Membership Expiry** | Automatically calculates expiry date |
-| **Daily Attendance** | Member login/check-in with date + time |
-| **Payment Tracking** | Paid date, amount, next due date, payment history |
-| **Expiry Blocking** | Expired membership → check-in rejected |
-| **Owner Notification** | Owner receives notification when someone checks in |
-| **New Member Alert** | Owner gets email when a new member registers |
-| **Payment Reminder** | Automatically notify member before payment is due |
-| **Expired Member Alert** | Notify owner about expired memberships |
-| **Renewal** | Renew membership while preserving previous history |
+# GymFlow — Gym Management System
 
-### Features I would add to make the owner actually like the system
+[Rutia Hub - Gestión Simple para Gimnasios | Rutia](https://images.openai.com/static-rsc-4/KAnWPXobzE3kMokiywJgGXcWhKHtla3YYJWciV0AI5_5LlZGqZ0a1URs6Vo2U1O69yKUNzXnfIpYVPhSwoZ70aKbYc8LNwL2QcFpQX3ferHhC97wKjgPAdHO8RkbCKryNRIXeQeVTuzeQuqG7eL0CMrQDKHy9tc4p7Dx71v2cBg?purpose=inline)
 
-#### 1. Owner Dashboard
+[rutia.app](https://rutia.app/es/rutia-hub?utm_source=chatgpt.com)
 
-The first screen should immediately answer:
+PHP 8.3+
 
-```text
-TODAY
-────────────────────────────────
-Members        184
-Present         67
-Absent         117
-New Members      3
-Payments         ₹12,500
-Expiring Soon     8
-Expired          14
-────────────────────────────────
-```
+MySQL 8+
 
-Then:
+HTML · CSS · JavaScript
 
-- Today's attendance
-- Recent payments
-- Members expiring in 3 / 7 days
-- Expired members
-- New registrations
-- Today's revenue
-- Monthly revenue
-- Attendance trend
+Responsive web app
 
-The owner shouldn't need to open multiple pages.
+Product concept: An easy-to-use gym management system for gym owners and staff to manage members, memberships, payments, renewals, and reports from a single application.
 
----
+Initial business model: Free to use during the first release. No payment gateway or paid external API required for the core product.
 
-#### 2. Smart membership status
+## 1. The problem we're solving
 
-Every member gets a status:
+Gym owners often maintain member details in spreadsheets, payment records in notebooks, and renewal reminders in WhatsApp. That makes it difficult to answer basic questions quickly:
 
-```text
-ACTIVE
-EXPIRING SOON
-EXPIRED
-FROZEN
-CANCELLED
-```
+- Who is currently an active member?
+- Who has an overdue payment?
+- Which memberships expire in the next seven days?
+- How much money was collected today or this month?
+- Which members have renewed, and what is their payment history?
 
-Example:
+GymFlow should answer these questions without requiring the owner to learn complicated software.
 
-```text
-Rahul Kumar
-Plan: Monthly
-Joined: 03 Sep 2026
-Expires: 02 Oct 2026
+### Product promise
 
-● ACTIVE
-6 days remaining
-```
+> Run your gym's daily membership and payment operations from one simple dashboard, with accurate records and no unnecessary complexity.
 
-When expired:
+## 2. Complete feature scope
 
-```text
-Rahul Kumar
+01\. Dashboard
 
-MEMBERSHIP EXPIRED
+- Total, active, expired, and inactive members.
+- Today's collections and monthly collections.
+- Outstanding payment balances.
+- Memberships expiring in 7 and 30 days.
+- Recent payments and quick actions.
+- Collection chart with date filters.
 
-Expiry: 02 Oct 2026
+02\. Member management
 
-Please renew your membership.
-```
+- Add, edit, view, archive, and search members.
+- Name, phone, email, gender (optional), address (optional), emergency contact (optional), and profile photo (optional).
+- Unique member ID generated automatically.
+- Member profile with membership history and payment history.
+- Filters for active, expired, upcoming expiry, and outstanding balance.
+- Import and export member records.
 
-And **do not create an attendance record** for the rejected login.
+03\. Membership plans and renewals
 
----
+- Create monthly, quarterly, half-yearly, and annual plans.
+- Custom duration and pricing.
+- Assign plans to members.
+- Track start date, expiry date, discount, and final price.
+- Renew memberships without deleting previous records.
+- Show upcoming and expired memberships.
+- Configure renewal warning periods.
 
-#### 3. Attendance history
+04\. Payments and billing
 
-Don't only store today's login.
+- Record cash, UPI, bank transfer, and card payments made outside the application.
+- Support full and partial payments.
+- Calculate the remaining balance automatically.
+- Store payment date, reference, payment method, and receipt number.
+- Print or save receipts as PDF.
+- View transaction history.
+- Correct mistakes through audited void/reversal operations, not silent deletion.
 
-Store:
+05\. Excel and CSV import
 
-```text
-Member
-Date
-Check-in time
-Check-out time
-Status
-```
+- Download a sample import template.
+- Upload `.xlsx` or `.csv` files.
+- Preview rows before importing.
+- Validate required fields, dates, phone numbers, and prices.
+- Identify duplicates and invalid rows.
+- Show row-level errors and import results.
+- Export members and payment reports to CSV or Excel-compatible files.
 
-Then owner can see:
+06\. Reminders and reports
 
-```text
-Rahul Kumar
+- In-app lists for upcoming expiries and pending dues.
+- WhatsApp reminder links with editable, prefilled messages.
+- Daily, weekly, and monthly collection reports.
+- Outstanding dues report.
+- Membership renewal report.
+- Export filtered reports.
 
-September Attendance
-────────────────────
-Present       22
-Absent         8
-Attendance    73%
-```
+## 3. User roles and permissions
 
-This becomes valuable later for member retention.
+Version 1 should support two roles.
 
----
+| Permission                   | Gym owner   | Staff    |
+| ---------------------------- | ----------- | -------- |
+| Dashboard and member records | Full access | Allowed  |
+| Add/edit members             | Yes         | Yes      |
+| Membership plans             | Manage      | View/use |
+| Record payments              | Yes         | Yes      |
+| Void or reverse payments     | Yes         | No       |
+| Financial reports            | Yes         | Limited  |
+| Manage staff and settings    | Yes         | No       |
+| Audit log                    | Yes         | No       |
 
-#### 4. QR-code attendance
+Every user must be authenticated. Staff permissions must be checked by PHP on the server, not just hidden in the UI.
 
-This would be a strong feature.
+## 4. MySQL database design
 
-Each member gets a unique QR code.
+Use a relational database with foreign keys, indexes, appropriate decimal types, and transactions for financial operations.
 
-At gym entrance:
+## Core database tables
 
-```text
-SCAN QR
-   ↓
-Identify Member
-   ↓
-Check Membership
-   ↓
-ACTIVE?
- ┌───────┴───────┐
- YES             NO
- ↓                ↓
-CHECK-IN       REJECT
- ↓                ↓
-Save             Show expiry
-attendance       message
-```
+gyms
 
-This is much better than asking the owner/staff to manually enter names.
+Gym name, contact details, timezone, settings
 
----
-
-#### 5. Payment automation
-
-This is where the system becomes useful for the owner.
-
-For example:
-
-**7 days before expiry**
-
-> Your gym membership expires in 7 days. Please renew.
-
-**3 days before expiry**
-
-> Your membership expires in 3 days.
-
-**On expiry**
-
-> Your gym membership has expired. Please renew to continue accessing the gym.
-
-**Owner**
-
-```text
-MEMBERSHIP ALERT
-
-8 members expire within 7 days.
-
-Rahul Kumar       2 days
-Arun Kumar        3 days
-Vijay Kumar       5 days
-...
-```
-
----
-
-#### 6. WhatsApp integration
-
-Email is good, but for a gym, **WhatsApp would probably be more useful**.
-
-Possible messages:
-
-```text
-Hi Rahul,
-
-Your gym membership expires on 02 Oct 2026.
-
-Please renew your membership to continue using the gym.
-
-— ABC Fitness
-```
-
-Also:
-
-- Payment confirmation
-- Renewal confirmation
-- Expiry reminder
-- Welcome message
-- Birthday message
-- Attendance milestone
-
-For the initial PHP 5 version, keep WhatsApp integration optional because the API/provider will introduce additional cost and infrastructure.
-
----
-
-#### 7. Member portal
-
-Give each member a login.
-
-They can see:
-
-```text
-MY MEMBERSHIP
-
-Plan
-Monthly
-
-Joined
-03 Sep 2026
-
-Expires
-02 Oct 2026
-
-Remaining
-6 Days
-
-ATTENDANCE
-September
-22 / 30 days
-
-PAYMENTS
-₹1,500
-Paid: 03 Sep
-```
-
-This reduces questions to the gym owner.
-
----
-
-#### 8. Freeze membership
-
-Very useful in real gyms.
-
-Example:
-
-Member goes on vacation for 10 days.
-
-Owner:
-
-```text
-Freeze Membership
-From: 10 Sep
-To: 19 Sep
-```
-
-System adjusts the expiry accordingly.
-
-Without this feature, the owner has to manually calculate dates.
-
----
-
-#### 9. Multiple membership types
-
-Don't hard-code "monthly".
-
-Create:
-
-```text
-Plans
-
-Monthly       ₹1,500
-Quarterly     ₹4,000
-Half-Yearly   ₹7,000
-Yearly        ₹12,000
-```
-
-Owner can create/edit plans from admin.
-
----
-
-#### 10. Payment history
-
-Never overwrite previous payments.
-
-Example:
-
-```text
-Rahul Kumar
-
-Payment History
-
-03 Oct 2026    ₹1,500    Monthly
-03 Sep 2026    ₹1,500    Monthly
-03 Aug 2026    ₹1,500    Monthly
-03 Jul 2026    ₹1,500    Monthly
-```
-
-This gives the owner a proper financial history.
-
----
-
-### Another feature I'd strongly recommend: member retention
-
-The system can identify inactive members.
-
-For example:
-
-```text
-INACTIVE MEMBERS
-
-No attendance for 7+ days
-
-Rahul       Last visit: 8 days ago
-Arun        Last visit: 11 days ago
-Vijay       Last visit: 15 days ago
-```
-
-Owner can contact them.
-
-This is more useful than simply storing attendance.
-
----
-
-### Automated daily owner report
-
-Every evening, send the owner something like:
-
-```text
-GYM DAILY REPORT
-03 October 2026
-
-Attendance
-67 members
-
-New Members
-3
-
-Payments
-₹12,500
-
-Membership Expiring
-8
-
-Expired
-4
-
-Most Active
-Rahul — 28 visits
-
-Inactive Members
-6
-```
-
-This can be automated with PHP cron.
-
----
-
-### Birthday automation
-
-Store DOB.
-
-Then automatically send:
-
-```text
-Happy Birthday Rahul!
-
-Wishing you a strong and healthy year ahead.
-
-— ABC Fitness
-```
-
-This is simple but makes the system feel polished.
-
----
-
-### Owner-side member search
-
-Search:
-
-```text
-Name
-Mobile
-Member ID
-Email
-QR ID
-```
-
-Then immediately show:
-
-```text
-Rahul Kumar
-
-ACTIVE
-Expires in 18 days
-
-Last Visit:
-Today, 6:42 PM
-
-Attendance:
-22 / 27
-
-Payment:
-Paid
-
-[Renew]
-[Freeze]
-[View History]
-```
-
----
-
-## Recommended architecture for your PHP 5 environment
-
-Since your company still uses **PHP 5**, I would keep the first version deliberately simple and compatible.
-
-```text
-                    GYM MANAGEMENT SYSTEM
-                             │
-              ┌──────────────┴──────────────┐
-              │                             │
-          MEMBER PORTAL                ADMIN PANEL
-              │                             │
-       ┌──────┼──────┐             ┌────────┼─────────┐
-       │      │      │             │        │         │
-    Profile  QR   Attendance    Members  Payments  Reports
-              │                             │
-              └──────────────┬──────────────┘
-                             │
-                         PHP 5 Backend
-                             │
-                         MySQL Database
-                             │
-                ┌────────────┼────────────┐
-                │            │            │
-             Email         Cron       Optional
-           Notifications   Jobs       WhatsApp
-```
-
-### Suggested database
-
-At minimum:
-
-```text
 users
+
+Login email, password hash, name, account status
+
+gym_users
+
+Gym membership, user role, access permissions
+
 members
+
+Member ID, contact details, status, gym ID
+
 membership_plans
+
+Plan name, duration, price, gym ID
+
 memberships
-attendance
+
+Member, plan, start/expiry dates, agreed price, discount
+
 payments
-membership_freezes
-notifications
-admin_users
+
+Membership, amount, method, date, receipt, status
+
+payment_reversals
+
+Reversal amount, reason, original payment, actor
+
+audit_logs
+
+User, action, record type, record ID, timestamp
+
+import_jobs
+
+Upload metadata, counts, result, initiating user
+
+### Important database relationships
+
+- One gym has many users, members, and membership plans.
+- One member can have many memberships over time.
+- One membership can have multiple payment records.
+- Every gym-owned record must have a `gym_id` or be linked through a parent record whose gym ownership is verified.
+- Foreign keys should prevent accidental orphaned records.
+
+### Essential financial rules
+
+1. Store monetary values using `DECIMAL(12,2)`, never floating-point types.
+2. Calculate balance as agreed membership price minus valid payments and applicable adjustments.
+3. Never count voided or reversed payments as collected revenue.
+4. Use database transactions when recording payments and reversals.
+5. Preserve old membership prices when a plan's price changes.
+6. Make payment and receipt identifiers unique within the appropriate scope.
+
+Membership status should be derived from membership dates and applicable business rules, rather than a manually editable label that can become inconsistent.
+
+## 5. Recommended project structure
+
+Use a simple, maintainable PHP MVC-style architecture rather than putting all application logic into one large PHP file.
+
+```
+gymflow/
+├── app/
+│   ├── Controllers/
+│   │   ├── AuthController.php
+│   │   ├── DashboardController.php
+│   │   ├── MemberController.php
+│   │   ├── MembershipController.php
+│   │   ├── PaymentController.php
+│   │   ├── ReportController.php
+│   │   └── ImportController.php
+│   ├── Models/
+│   ├── Services/
+│   ├── Middleware/
+│   ├── Validators/
+│   └── Views/
+├── config/
+│   ├── app.php
+│   └── database.php
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── public/
+│   ├── index.php
+│   └── assets/
+│       ├── css/
+│       ├── js/
+│       └── images/
+├── routes/
+│   └── web.php
+├── storage/
+│   ├── logs/
+│   ├── imports/
+│   └── exports/
+├── tests/
+├── .env.example
+├── .gitignore
+├── composer.json
+└── README.md
 ```
 
-Important relationship:
+Keep uploaded files, `.env`, logs, and private exports outside the publicly accessible web directory.
 
-```text
-members
-   │
-   ├── memberships
-   │       └── membership_plan
-   │
-   ├── attendance
-   │
-   ├── payments
-   │
-   └── membership_freezes
-```
+## 6. Skills required to build this
 
-### Important security rule
+Since you already know HTML, CSS, JavaScript, and have experience with Figma, focus your learning on the backend and database.
 
-Don't implement expiry blocking only in JavaScript.
+## Your learning checklist
 
-The server must check:
+Frontend
 
-```php
-if ($membership_expired) {
-    // reject attendance
-}
-```
+Semantic HTML and accessible forms
 
-before inserting the attendance record.
+CSS, responsive layouts and Tailwind CSS or Bootstrap
 
-Otherwise someone can bypass the frontend and submit the attendance request directly.
+JavaScript DOM, Fetch API and form validation
 
-Also use:
+Figma-to-code workflow
 
-- PDO prepared statements
-- password hashing compatible with the deployed PHP version
-- CSRF protection
-- session regeneration after login
-- server-side validation
-- rate limiting on login/check-in endpoints
-- audit logs for admin actions
-- HTTPS
-- database backups
-- cron-job authentication/secret protection
-- no sensitive data in URLs
+PHP backend
 
-### MVP I would build first
+PHP syntax, functions, arrays and sessions
 
-1. Admin login
-2. Member registration
-3. Membership plans
-4. Membership activation/expiry
-5. Member ID
-6. QR attendance
-7. Daily attendance
-8. Payment recording
-9. Expired-member blocking
-10. Dashboard
-11. Email notifications
+Object-oriented PHP and MVC architecture
 
-12. Member portal  
-13. Renewal  
-14. Freeze membership  
-15. Attendance reports  
-16. Revenue reports  
-17. Expiry reminders  
-18. Inactive-member detection  
-19. Daily owner report  
+PDO prepared statements
 
-20. WhatsApp  
-21. Birthday automation  
-22. Multiple branches  
-23. Staff accounts  
-24. Trainer management  
-25. Workout plans  
-26. Diet plans  
-27. Member progress/photos  
-28. Equipment/service reminders  
-more will add
+Authentication, authorization and CSRF protection
 
-The key product idea is: **the owner should open the dashboard and immediately know who came, who paid, who is expiring, who is expired, who is inactive, and what requires action.** That is what turns it from a basic gym website into a useful gym-management system.
+Input validation, output escaping and error handling
 
-here my idea more,
-Features to add
-Member Management
-1. Member registration
-2. Unique Member ID
-3. QR code for each member
-4. Profile photo
-5. DOB / age
-6. Gender
-7. Emergency contact
-8. Joining date
-9. Membership start/end date
-10. Membership status
-11. Membership freeze
-12. Membership renewal
-13. Membership cancellation
-14. Member notes
-15. Medical/injury notes — optional and access-restricted
-Attendance
-16. QR check-in
-17. Manual check-in by staff
-18. Check-in time
-19. Check-out time
-20. Daily attendance
-21. Monthly attendance
-22. Attendance percentage
-23. Last visit
-24. Consecutive attendance/streak
-25. Inactive-member detection
-26. Prevent attendance after membership expiry
-27. Duplicate check-in prevention
-Payments
-28. Payment entry
-29. Payment history
-30. Receipt generation
-31. Next payment date
-32. Automatic expiry calculation
-33. Due-payment list
-34. Payment reminder
-35. Renewal history
-36. Discount handling
-37. Partial payment support
-38. Cash / UPI / card payment type
-39. Daily collection report
-40. Monthly revenue report
-Notifications
-41. New member → owner email
-42. Every new check-in → owner notification
-43. Payment received → confirmation
-44. Membership expiring → member reminder
-45. Membership expiring → owner alert
-46. Membership expired → owner alert
-47. Inactive member → owner alert
-48. Daily gym summary email
-49. Birthday notification
-50. Renewal reminder
+MySQL
 
-Before & After Progress Module
-This can become one of the best features of the system.
-51. Progress Photos
-Member profile:
-PROGRESS
-────────────────────────
+CREATE TABLE, SELECT, INSERT, UPDATE and DELETE
 
-START
-01 Oct 2026
+JOINs, indexes, foreign keys and normalization
 
-[ Front ] [ Side ] [ Back ]
+Transactions, constraints and decimal arithmetic
 
-CURRENT
-01 Jan 2027
+Database backups and restore testing
 
-[ Front ] [ Side ] [ Back ]
+Product and release
 
-        ↓
+Git and GitHub
 
-   COMPARE PROGRESS
+Composer and dependency management
 
-52. Multiple progress checkpoints
-Don't restrict it to only "before" and "after".
-Use:
-Initial
-↓
-30 Days
-↓
-60 Days
-↓
-90 Days
-↓
-6 Months
-↓
-1 Year
+CSV/Excel import validation
 
-This gives the owner a proper transformation timeline.
-53. Photo categories
-Allow:
-- Front
-- Back
-- Left side
-- Right side
-Optional:
-- Flexed
-- Relaxed
-54. Body measurements
-Alongside photos:
-Weight       82 kg
-Chest        42"
-Waist        36"
-Arms         15"
-Thigh        23"
-Body Fat     24%
+Unit and integration testing
 
-Then compare:
-START          CURRENT
+Apache/Nginx deployment, HTTPS and environment variables
 
-82 kg    →     74 kg
-36"      →     31"
-24%      →     17%
+0 of 18 skills marked complete.
 
-55. Progress chart
-Show weight/measurement changes visually.
-Weight
+You don't have to master all of these before starting. Build the project in phases and learn each concept as you implement it.
 
-82 ┤●
-80 ┤  ●
-78 ┤    ●
-76 ┤       ●
-74 ┤          ●
-   └──────────────
-    Oct Nov Dec Jan
+## 7. Master prompt for Google Antigravity
 
-56. Photo privacy
-Important because these are personal images.
-Member should be able to choose:
-☑ Private
-☐ Share with trainer
-☐ Share with gym
+Copy this specification into Antigravity as the main project instruction. Ask it to work in your project workspace, create actual files, run the application and tests, and fix errors instead of stopping at code suggestions.
 
-Default should be private.
-57. Progress comparison slider
-A very good UI:
-┌─────────────────────────┐
-│        BEFORE           │
-│                         │
-│          │              │
-│          │              │
-│          │              │
-│          │              │
-│        AFTER            │
-└─────────────────────────┘
+# Project Specification: GymFlow — Gym Management System
 
-Drag the divider left/right to compare.
-58. Progress gallery
-Member:
-Progress Timeline
+## 1. Project Overview
 
-Oct 01
-[photos]
+Build GymFlow, a complete, responsive, production-minded gym management web application using PHP 8.3+, MySQL 8+, HTML5, CSS3, JavaScript, and Bootstrap 5.
 
-Nov 01
-[photos]
+The application helps gym owners manage members, membership plans, renewals, payments, outstanding dues, imports, and reports in one dashboard.
 
-Dec 01
-[photos]
+The initial release is free to use. Do not integrate a payment gateway or require paid APIs.
 
-Jan 01
-[photos]
+This must be a functional application connected to a real MySQL database. Do not build only a UI prototype or use mock data as the main data source.
 
-59. Progress PDF/report
-Owner can generate:
-Member Progress Report
-Rahul Kumar
-Member ID: GYM-1024
+## 2. Development Rules
 
-Joined: 01 Oct 2026
+- Inspect the existing project workspace before creating files.
+- If the workspace is empty, initialize the project cleanly.
+- Use maintainable PHP MVC-style architecture with controllers, models, services, middleware, views, and routing.
+- Use PDO with prepared statements for database access.
+- Use Composer for dependency management.
+- Use database migrations and seeders.
+- Use environment variables for database credentials and secrets.
+- Do not hardcode credentials.
+- Use reusable layouts, components, validation, and error handling.
+- Keep controllers thin and put business logic in services.
+- Do not use a large single PHP file containing the entire application.
+- Implement one module at a time and verify it before moving on.
+- Do not leave buttons or forms nonfunctional.
+- Never report a feature as complete unless it has been implemented and tested.
 
-Starting Weight: 82 kg
-Current Weight: 74 kg
-Change: -8 kg
+## 3. Technology Stack
 
-Measurements
-...
+Backend: PHP 8.3+.\
+Database: MySQL 8+ with InnoDB.\
+Frontend: HTML5, CSS3, Bootstrap 5, vanilla JavaScript.\
+Database access: PDO.\
+Authentication: PHP sessions and password_hash/password_verify.\
+Spreadsheet import: PhpSpreadsheet through Composer, supporting CSV and XLSX.\
+Charts: Chart.js.\
+Icons: Bootstrap Icons.\
+PDF receipts: A maintained PHP PDF library if needed.\
+Testing: PHPUnit and appropriate integration tests.
 
-Progress Photos
-Before → Current
+Use Composer-compatible, maintained dependency versions and document the requirements.
 
-Useful for giving members a professional progress report.
+## 4. Design Requirements
 
-Other features I would add
-60. Workout plan management
-61. Trainer assignment
-62. Exercise library
-63. Daily workout tracking
-64. Personal trainer notes
-65. Diet plan attachment
-66. Workout completion tracking
-67. Personal goals — weight loss, muscle gain, fitness, etc.
-68. Goal progress
-69. Member achievements
-70. Attendance streak badges
-71. Referral tracking
-72. Member feedback
-73. Complaint/request system
-74. Announcement system
-75. Gym holidays/closures
-76. Staff accounts with permissions
-77. Trainer attendance
-78. Staff activity/audit log
-79. Equipment maintenance reminders
-80. Equipment issue reporting
-81. Expense tracking
-82. Monthly profit/revenue dashboard
-83. Membership renewal forecast
-84. Export members to Excel/CSV
-85. Database backup system
+Create a clean, professional gym management dashboard.
+
+- Responsive sidebar on desktop and accessible navigation on mobile.
+- Neutral light theme with restrained accent colors.
+- Clear typography, consistent spacing, and accessible contrast.
+- Dashboard KPI cards, compact tables, useful filters, and readable empty states.
+- Forms with inline validation and helpful error messages.
+- Confirmation dialogs for destructive or financial actions.
+- Loading states, success notifications, error notifications, and pagination.
+- Mobile-friendly tables or alternative layouts.
+- Avoid excessive gradients, unnecessary animations, and decorative cards.
+- Use realistic seeded demo data only in development.
+
+## 5. Authentication and Multi-Tenant Security
+
+Implement:
+
+- Gym registration and owner account creation.
+- Login and logout.
+- Secure session handling and session ID regeneration after login.
+- Password hashing using PHP password_hash.
+- Password reset only if a secure flow can be implemented correctly.
+- Owner and staff roles.
+- Gym-specific data isolation.
+- Server-side role and ownership checks on every protected operation.
+- CSRF tokens on state-changing requests.
+- Output escaping to prevent XSS.
+- PDO prepared statements to prevent SQL injection.
+- Login throttling and safe error messages.
+- Secure cookie settings and session expiration.
+- Audit logging for sensitive operations.
+
+Every business record must be associated with a gym or an ownership-verified parent record. Never trust a gym ID supplied by the browser without checking the authenticated user's access.
+
+Protect private uploads, exports, logs, environment files, and configuration from direct public access.
+
+## 6. Dashboard Module
+
+Display:
+
+- Total members.
+- Active memberships.
+- Upcoming expiries.
+- Expired memberships.
+- Outstanding dues.
+- Collections today.
+- Collections this month.
+- Recent payments.
+- Renewal reminders.
+- Collection chart with date filters.
+
+All metrics must be calculated from actual database records. Define how date ranges, reversed payments, inactive members, and renewals affect the totals.
+
+## 7. Member Management Module
+
+Implement:
+
+- Create, read, update, search, filter, and archive members.
+- Generate a unique member number per gym.
+- Store name and phone as required fields, with optional email, address, emergency contact, and profile photo.
+- Validate fields on both client and server.
+- Support pagination and useful empty states.
+- Provide a member detail page with membership and payment history.
+- Prevent accidental duplicate records where possible.
+- Preserve financial history when a member is archived.
+
+## 8. Membership Plans and Memberships
+
+Membership plans must support:
+
+- Plan name.
+- Duration in days or months.
+- Price.
+- Description.
+- Active/inactive availability.
+
+Membership records must support:
+
+- Member and plan association.
+- Start date and expiry date.
+- Original plan price snapshot.
+- Discount and agreed price.
+- Membership status.
+- Renewal history.
+
+Allow custom start dates and expiry dates. Preserve past membership records when renewing. Define date calculations consistently and document the policy for expired memberships, early renewals, and overlapping memberships.
+
+## 9. Payments and Financial Records
+
+Support:
+
+- Cash.
+- UPI.
+- Bank transfer.
+- Card payments recorded externally.
+
+The application records payments; it does not process money.
+
+Allow full and partial payments. Each payment should have an amount, date, method, receipt number, optional reference, status, membership association, and the authenticated user who recorded it.
+
+Requirements:
+
+- Use DECIMAL monetary fields.
+- Calculate outstanding balances using valid payment records.
+- Use database transactions for payment creation and reversal.
+- Never silently delete a payment.
+- Implement authorized void/reversal operations with a reason and audit trail.
+- Prevent duplicate submissions where possible.
+- Generate printable receipts.
+- Allow filtering by date, member, method, and status.
+
+Define dashboard collections as actual valid payments received in the selected period, not the total value of membership contracts.
+
+## 10. Membership Renewal and Due Tracking
+
+Provide separate views for:
+
+- Expiring within seven days.
+- Expiring within thirty days.
+- Already expired.
+- Outstanding balances.
+
+Make the expiry window configurable.
+
+Allow authorized users to renew a membership, record a payment, and view previous memberships.
+
+Provide a WhatsApp click-to-chat link with an editable, prefilled reminder. Do not claim that messages were delivered.
+
+Do not implement paid messaging integrations or automatic message delivery in this release.
+
+## 11. Excel and CSV Import/Export
+
+Implement member import using CSV and XLSX.
+
+Workflow:
+
+1. Download a sample template.
+2. Upload a file.
+3. Validate file type and size.
+4. Parse and preview the rows.
+5. Validate required fields, dates, and phone values.
+6. Detect duplicates.
+7. Show row-level errors.
+8. Require explicit confirmation.
+9. Import valid rows safely.
+10. Display an import summary and downloadable error report.
+
+Use safe storage outside the public web root, strict file validation, size limits, and cleanup of temporary files.
+
+Do not trust formulas, macros, file extensions, or MIME types. Do not automatically execute spreadsheet formulas.
+
+Support exporting authorized member and payment reports.
+
+## 12. Reports
+
+Implement:
+
+- Daily collections.
+- Monthly collections.
+- Payment history.
+- Outstanding dues.
+- Upcoming renewals.
+- Expired memberships.
+- Membership plan distribution.
+
+Provide date filters, pagination where appropriate, and CSV exports.
+
+Ensure reports respect gym ownership and payment reversal rules.
+
+## 13. MySQL Database Design
+
+Create migrations and foreign keys for at least:
+
+- gyms
+- users
+- gym_users
+- members
+- membership_plans
+- memberships
+- payments
+- payment_reversals
+- audit_logs
+- import_jobs
+
+Use InnoDB, appropriate indexes, unique constraints, created_at and updated_at timestamps, and consistent naming.
+
+Every gym-owned record must have reliable tenant ownership. Include gym ownership checks in all relevant queries and service operations.
+
+Use DECIMAL(12,2) for monetary values.
+
+Use transactions for multi-step financial operations. Prevent duplicate member IDs and receipt numbers within the correct scope.
+
+Add database migrations and a development seeder. Do not seed demo data in production automatically.
+
+## 14. Project Structure
+
+Use a structure similar to:
+
+app/Controllers/\
+app/Models/\
+app/Services/\
+app/Middleware/\
+app/Validators/\
+app/Views/\
+config/\
+database/migrations/\
+database/seeders/\
+public/index.php\
+public/assets/css/\
+public/assets/js/\
+routes/web.php\
+storage/logs/\
+storage/imports/\
+storage/exports/\
+tests/\
+.env.example\
+.gitignore\
+composer.json\
+README.md
+
+Only the public directory should be exposed by the web server.
+
+## 15. Testing Requirements
+
+Write tests for:
+
+- Authentication and authorization.
+- Cross-gym data isolation.
+- Member CRUD and duplicate prevention.
+- Membership date calculations.
+- Partial payments and outstanding balances.
+- Payment reversals and collection totals.
+- Renewal workflow.
+- CSV/XLSX import validation and duplicates.
+- Unauthorized access.
+- CSRF protection.
+- Export access control.
+
+Test invalid inputs, empty datasets, expired memberships, reversed payments, and concurrent or duplicate payment submissions where applicable.
+
+Run available tests and fix failures. Do not disable security checks to make tests pass.
+
+## 16. Delivery Requirements
+
+Deliver:
+
+1. Complete working source code.
+2. Database migrations and development seeders.
+3. .env.example without real secrets.
+4. Composer dependencies and setup instructions.
+5. README with installation, database creation, migration, seeding, and deployment instructions.
+6. Test suite and test instructions.
+7. Responsive UI for all core screens.
+8. A list of implemented features and known limitations.
+
+## 17. Implementation Phases
+
+Phase 1: Inspect workspace, initialize PHP project, configure MySQL, implement routing and authentication.
+
+Phase 2: Build database migrations, tenant isolation, owner/staff permissions, and member management.
+
+Phase 3: Build membership plans, membership history, renewals, and expiry tracking.
+
+Phase 4: Build payments, partial payments, balances, receipts, and reversal logic.
+
+Phase 5: Build dashboard metrics, reports, and Excel/CSV import/export.
+
+Phase 6: Complete responsive UI, audit logs, validation, error handling, and security checks.
+
+Phase 7: Run tests, fix defects, document setup, and prepare deployment.
+
+Start with Phase 1. Inspect the workspace and create the foundation. Explain the implementation plan, then implement and test it. Continue phase by phase, preserving working code and updating the README. Do not attempt to generate the entire application in one unverified step.
+
+## 8. Development roadmap and skill priority
+
+My suggested order is:
+
+| Priority | Learn or practise                  | Why                                    |
+| -------- | ---------------------------------- | -------------------------------------- |
+| 1        | PHP, PDO, sessions                 | Application logic and authentication   |
+| 2        | MySQL, relationships, transactions | Reliable member and payment data       |
+| 3        | PHP MVC and routing                | Maintainable project architecture      |
+| 4        | HTML, CSS, Bootstrap, JavaScript   | Responsive interface and forms         |
+| 5        | Security and validation            | Protect accounts and financial records |
+| 6        | Git, testing, deployment           | Release and maintain the product       |
+
+One important rule: Antigravity can generate much of the code, but you must verify database calculations, authorization, payment handling, and cross-gym isolation. These are the areas where a visually complete application can still be dangerously incorrect.
