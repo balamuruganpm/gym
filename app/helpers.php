@@ -119,9 +119,13 @@ if (!function_exists('url')) {
         
         // Compute base directory from current script
         $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '');
-        $scriptDir = ($scriptDir === '/' || $scriptDir === '\\') ? '' : str_replace('\\', '/', $scriptDir);
+        $scriptDir = ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') ? '' : str_replace('\\', '/', $scriptDir);
         
-        $base = rtrim($scheme . '://' . $host . $scriptDir, '/');
+        // URL-encode directory segments (e.g. Projects All -> Projects%20All)
+        $encodedSegments = array_map('rawurlencode', explode('/', $scriptDir));
+        $encodedDir = implode('/', $encodedSegments);
+        
+        $base = rtrim($scheme . '://' . $host . $encodedDir, '/');
         return $base . '/' . ltrim($path, '/');
     }
 }

@@ -1,4 +1,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # Rewrite empty root to public/
+    RewriteRule ^$ public/ [L]
+    
+    # Do not rewrite if request already targets public/
+    RewriteCond %{REQUEST_URI} !public/ [NC]
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

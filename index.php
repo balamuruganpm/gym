@@ -1,4 +1,4 @@
 <?php
-// Fallback redirect to public folder
-header('Location: public/');
-exit;
+declare(strict_types=1);
+
+require_once __DIR__ . '/public/index.php';

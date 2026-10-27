@@ -64,16 +64,30 @@ class Router
 
     public static function dispatch(string $requestMethod, string $requestUri): void
     {
-        // Strip query string
-        $path = parse_url($requestUri, PHP_URL_PATH) ?? '/';
+        // Strip query string and decode URL-encoded segments (%20 -> space)
+        $path = rawurldecode(parse_url($requestUri, PHP_URL_PATH) ?? '/');
 
-        // Normalize base path if project runs in subfolder (e.g. /Projects All/per/gym/public)
-        $scriptName = dirname($_SERVER['SCRIPT_NAME'] ?? '');
-        if ($scriptName !== '/' && $scriptName !== '\\' && !empty($scriptName)) {
-            $scriptName = str_replace('\\', '/', $scriptName);
-            if (str_starts_with($path, $scriptName)) {
-                $path = substr($path, strlen($scriptName));
+        // Normalize base path if project runs in subfolder (e.g. /Projects All/per/gym/public or /Projects All/per/gym)
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+        if ($scriptDir !== '/' && $scriptDir !== '\\' && $scriptDir !== '.' && !empty($scriptDir)) {
+            if (str_starts_with($path, $scriptDir)) {
+                $path = substr($path, strlen($scriptDir));
+            } else {
+                $parentDir = str_replace('\\', '/', dirname($scriptDir));
+                if ($parentDir !== '/' && $parentDir !== '\\' && $parentDir !== '.' && !empty($parentDir)) {
+                    if (str_starts_with($path, $parentDir)) {
+                        $path = substr($path, strlen($parentDir));
+                    }
+                }
             }
+        }
+
+        // Strip leading /public if still present
+        $path = '/' . trim($path, '/');
+        if (str_starts_with($path, '/public/')) {
+            $path = substr($path, 7);
+        } elseif ($path === '/public') {
+            $path = '/';
         }
 
         $path = '/' . trim($path, '/');
