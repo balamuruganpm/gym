@@ -324,5 +324,67 @@ $whatsappUrl = "https://wa.me/{$cleanPhone}?text={$whatsappMsg}";
                 </div>
             <?php endif; ?>
         </div>
+
+        <!-- Member Portal Access Card (Phase D) -->
+        <div class="gf-card p-4 mb-4">
+            <h6 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-shield-lock text-primary me-1"></i> Member Portal Access</span>
+                <?php if (!empty($member['user_id'])): ?>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                <?php else: ?>
+                    <span class="badge bg-secondary-subtle text-secondary border">Not Linked</span>
+                <?php endif; ?>
+            </h6>
+
+            <?php if (!empty($member['user_id'])): ?>
+                <div class="p-3 bg-light rounded-3 border small mb-2">
+                    <div class="text-muted mb-1">Linked Login Account:</div>
+                    <strong class="text-dark"><i class="bi bi-person-check me-1"></i> User ID #<?= (int) $member['user_id'] ?></strong>
+                    <div class="text-muted mt-1" style="font-size: 11px;">Member can sign in at <code>/login</code> to access self-service portal.</div>
+                </div>
+            <?php else: ?>
+                <p class="text-muted small mb-3">
+                    Provision a login account so this member can view pass expiry, track dues, download receipts, and submit offline payment requests.
+                </p>
+                <button type="button" class="btn btn-outline-primary btn-sm w-100 rounded-pill" data-bs-toggle="modal" data-bs-target="#createPortalModal">
+                    <i class="bi bi-person-plus me-1"></i> Create Portal Account
+                </button>
+
+                <!-- Modal to create portal account -->
+                <div class="modal fade" id="createPortalModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border rounded-4 shadow">
+                            <form method="POST" action="<?= url("members/{$member['id']}/create-portal-account") ?>">
+                                <?= csrf_field() ?>
+                                <div class="modal-header border-bottom px-4 py-3">
+                                    <h5 class="modal-title fw-bold">Create Member Portal Account</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body px-4 py-3">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Member Name</label>
+                                        <input type="text" class="form-control rounded-3 bg-light" disabled value="<?= e($fullName) ?>">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Login Email <span class="text-danger">*</span></label>
+                                        <input type="email" name="email" class="form-control rounded-3" required value="<?= e($member['email'] ?? '') ?>" placeholder="member@example.com">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Initial Password <span class="text-danger">*</span></label>
+                                        <input type="password" name="password" class="form-control rounded-3" required minlength="8" placeholder="At least 8 characters">
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top px-4 py-3">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                        <i class="bi bi-key me-1"></i> Provision Account
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </div>

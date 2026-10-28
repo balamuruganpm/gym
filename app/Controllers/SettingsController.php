@@ -14,6 +14,12 @@ class SettingsController extends Controller
     public function index(): string
     {
         $gymId = TenantContext::getGymId();
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
+
+        if ($userRole !== 'owner') {
+            $this->redirect('dashboard', ['error' => 'Only the gym owner can access gym profile settings.']);
+        }
+
         $gym = Database::fetchOne("SELECT * FROM `gyms` WHERE `id` = :id LIMIT 1", [':id' => $gymId]);
 
         return $this->view('settings.index', [
@@ -25,7 +31,7 @@ class SettingsController extends Controller
     public function update(): void
     {
         $gymId = TenantContext::getGymId();
-        $userRole = (string) Session::get('user.role');
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
 
         if ($userRole !== 'owner') {
             $this->back(['error' => 'Only the gym owner can update gym profile settings.']);

@@ -21,7 +21,13 @@ use App\Services\Router;
 // 3. Load Environment & Configuration
 Config::load($baseDir);
 
-// 4. Set Timezone
+$isDebug = (bool) Config::get('app.debug', false);
+ini_set('display_errors', $isDebug ? '1' : '0');
+
+// 4. Register Safe Exception/Error Logging Handlers
+\App\Services\Logger::registerHandlers();
+
+// 5. Set Timezone
 date_default_timezone_set(Config::get('app.timezone', 'Asia/Kolkata'));
 
 // 5. Initialize Session

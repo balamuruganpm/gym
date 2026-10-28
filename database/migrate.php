@@ -239,4 +239,15 @@ foreach ($tables as $name => $ddl) {
     }
 }
 
+// Run forward-only additive migrations
+$migrationsDir = __DIR__ . '/migrations';
+if (is_dir($migrationsDir)) {
+    foreach (glob($migrationsDir . '/*.php') as $migrationFile) {
+        $result = require $migrationFile;
+        if (is_callable($result)) {
+            $result($pdo);
+        }
+    }
+}
+
 echo "✅ All database migrations finished successfully on `gym-premium`!\n";

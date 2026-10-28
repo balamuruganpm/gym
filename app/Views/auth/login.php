@@ -68,16 +68,7 @@
         Login <i class="bi bi-arrow-right ms-1"></i>
     </button>
 
-    <div class="position-relative my-4 text-center">
-        <hr class="text-secondary opacity-25">
-        <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted fw-bold">OR</span>
-    </div>
-
-    <a href="<?= url('register') ?>" class="gf-btn gf-btn-outline w-100 py-2 fs-6">
-        Create New Gym Account
-    </a>
-
-    <div class="text-center mt-4">
-        <span class="small text-muted">Free to use <span class="mx-1">•</span> No credit card required</span>
+    <div class="text-center mt-4 pt-2">
+        <span class="small text-muted"><i class="bi bi-shield-lock me-1"></i> Single-Gym Dedicated Platform <span class="mx-1">•</span> Contact gym management for portal access</span>
     </div>
 </form>

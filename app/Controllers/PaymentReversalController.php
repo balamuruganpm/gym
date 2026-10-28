@@ -16,8 +16,8 @@ class PaymentReversalController extends Controller
     public function void(string $id): void
     {
         $gymId = TenantContext::getGymId();
-        $userId = (int) Session::get('user.id');
-        $userRole = (string) Session::get('user.role');
+        $userId = (int) (Session::get('user.id') ?? Session::get('user')['id'] ?? 0);
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
 
         if (!in_array($userRole, ['owner', 'manager'], true)) {
             $this->back(['error' => 'Unauthorized. Only Gym Owners and Managers can void payment receipts.']);

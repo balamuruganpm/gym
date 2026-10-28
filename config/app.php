@@ -9,4 +9,5 @@ return [
     'currency' => $_ENV['DEFAULT_CURRENCY'] ?? '₹',
     'session_lifetime' => (int) ($_ENV['SESSION_LIFETIME'] ?? 7200),
     'csrf_secret' => $_ENV['CSRF_SECRET'] ?? 'default_secret_key_change_in_prod',
+    'log_retention_days' => (int) ($_ENV['LOG_RETENTION_DAYS'] ?? 30),
 ];

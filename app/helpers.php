@@ -85,14 +85,35 @@ if (!function_exists('current_gym')) {
 if (!function_exists('user_role')) {
     function user_role(): ?string
     {
-        return Session::get('user_role');
+        return Session::get('user_role') ?? Session::get('user.role');
     }
 }
 
 if (!function_exists('is_owner')) {
     function is_owner(): bool
     {
-        return Session::get('user_role') === 'owner';
+        return user_role() === 'owner';
+    }
+}
+
+if (!function_exists('is_trainer')) {
+    function is_trainer(): bool
+    {
+        return user_role() === 'trainer';
+    }
+}
+
+if (!function_exists('is_member')) {
+    function is_member(): bool
+    {
+        return user_role() === 'member';
+    }
+}
+
+if (!function_exists('is_supreme_leader')) {
+    function is_supreme_leader(): bool
+    {
+        return (bool) (Session::get('is_supreme_leader') ?? (Session::get('user')['is_supreme_leader'] ?? false));
     }
 }
 

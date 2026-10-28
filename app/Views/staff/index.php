@@ -83,7 +83,7 @@
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content gf-modal-content border">
-            <div class="modal-header border-bottom">
+            <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold">
                     <i class="bi bi-person-plus text-primary me-2"></i> Add Team Member
                 </h5>
@@ -116,12 +116,13 @@
                         <label class="form-label small fw-semibold">System Role <span class="text-danger">*</span></label>
                         <select name="role" class="gf-form-select" required>
                             <option value="staff" selected>Staff / Front Desk (Can register members & record payments)</option>
+                            <option value="trainer">Gym Trainer (Assigned trainees, scheduling, workout progress)</option>
                             <option value="owner">Gym Co-Owner (Full administrative & reversal permissions)</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="modal-footer border-top bg-light">
+                <div class="modal-footer border-0 pt-0 bg-light">
                     <button type="button" class="btn btn-light border text-muted" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn gf-btn-primary fw-semibold px-4">Create Account</button>
                 </div>

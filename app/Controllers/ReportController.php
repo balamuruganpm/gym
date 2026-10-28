@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Services\Database;
+use App\Services\Session;
 use App\Services\TenantContext;
 
 class ReportController extends Controller
@@ -12,6 +13,12 @@ class ReportController extends Controller
     public function index(): string
     {
         $gymId = TenantContext::getGymId();
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
+
+        if (!in_array($userRole, ['owner', 'staff'], true)) {
+            $this->redirect('dashboard', ['error' => 'Unauthorized: Only gym staff and owners can access financial reports.']);
+        }
+
         $tab = $_GET['tab'] ?? 'collections';
 
         $startDate = $_GET['start_date'] ?? date('Y-m-01');
@@ -126,6 +133,12 @@ class ReportController extends Controller
     public function exportCollections(): void
     {
         $gymId = TenantContext::getGymId();
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
+
+        if (!in_array($userRole, ['owner', 'staff'], true)) {
+            $this->redirect('dashboard', ['error' => 'Unauthorized: Only gym staff and owners can export financial reports.']);
+        }
+
         $startDate = $_GET['start_date'] ?? date('Y-m-01');
         $endDate = $_GET['end_date'] ?? date('Y-m-d');
 
@@ -162,6 +175,11 @@ class ReportController extends Controller
     public function exportDues(): void
     {
         $gymId = TenantContext::getGymId();
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
+
+        if (!in_array($userRole, ['owner', 'staff'], true)) {
+            $this->redirect('dashboard', ['error' => 'Unauthorized: Only gym staff and owners can export financial reports.']);
+        }
 
         $rows = Database::fetchAll("
             SELECT 

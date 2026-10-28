@@ -41,7 +41,7 @@ class StaffController extends Controller
     public function store(): void
     {
         $gymId = TenantContext::getGymId();
-        $currentUserRole = Session::get('user.role');
+        $currentUserRole = Session::get('user.role') ?? Session::get('user_role');
 
         if ($currentUserRole !== 'owner') {
             $this->back(['error' => 'Only the gym owner can add new staff members.']);
@@ -62,7 +62,7 @@ class StaffController extends Controller
         $name = trim($_POST['name']);
         $phone = !empty($_POST['phone']) ? trim($_POST['phone']) : null;
         $password = (string) $_POST['password'];
-        $role = in_array($_POST['role'], ['owner', 'staff'], true) ? $_POST['role'] : 'staff';
+        $role = in_array($_POST['role'], ['owner', 'staff', 'trainer'], true) ? $_POST['role'] : 'staff';
 
         try {
             Database::transaction(function (\PDO $pdo) use ($gymId, $email, $name, $phone, $password, $role) {
@@ -116,8 +116,14 @@ class StaffController extends Controller
     public function toggle(string $id): void
     {
         $gymId = TenantContext::getGymId();
+        $currentUserRole = Session::get('user.role') ?? Session::get('user_role');
+
+        if ($currentUserRole !== 'owner') {
+            $this->back(['error' => 'Only the gym owner can modify staff access.']);
+        }
+
         $targetUserId = (int) $id;
-        $currentUserId = (int) Session::get('user.id');
+        $currentUserId = (int) (Session::get('user.id') ?? Session::get('user')['id'] ?? 0);
 
         if ($targetUserId === $currentUserId) {
             $this->back(['error' => 'You cannot deactivate your own account!']);

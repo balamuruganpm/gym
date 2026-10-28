@@ -51,22 +51,114 @@ class Session
 
     public static function set(string $key, mixed $value): void
     {
+        // 1. Store flat key for direct lookup
         $_SESSION[$key] = $value;
+
+        // 2. If key contains dot notation, also set nested array structure
+        if (str_contains($key, '.')) {
+            $segments = explode('.', $key);
+            $current = &$_SESSION;
+            foreach ($segments as $i => $segment) {
+                if ($i === count($segments) - 1) {
+                    $current[$segment] = $value;
+                } else {
+                    if (!isset($current[$segment]) || !is_array($current[$segment])) {
+                        $current[$segment] = [];
+                    }
+                    $current = &$current[$segment];
+                }
+            }
+        }
     }
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        return $_SESSION[$key] ?? $default;
+        // 1. Direct key lookup first (preserves flat keys including any key with an exact match)
+        if (isset($_SESSION[$key])) {
+            return $_SESSION[$key];
+        }
+
+        if (is_array($_SESSION ?? null) && array_key_exists($key, $_SESSION)) {
+            return $_SESSION[$key];
+        }
+
+        // 2. Dot-notation traversal if dot is present
+        if (str_contains($key, '.')) {
+            $segments = explode('.', $key);
+            $current = $_SESSION;
+            $found = true;
+            foreach ($segments as $segment) {
+                if (is_array($current) && (isset($current[$segment]) || array_key_exists($segment, $current))) {
+                    $current = $current[$segment];
+                } else {
+                    $found = false;
+                    break;
+                }
+            }
+            if ($found) {
+                return $current;
+            }
+
+            // Special fallback: 'user.role' -> check 'user_role' flat key if present
+            if ($key === 'user.role' && isset($_SESSION['user_role'])) {
+                return $_SESSION['user_role'];
+            }
+            // Special fallback: 'user.id' -> check 'user'['id']
+            if ($key === 'user.id' && isset($_SESSION['user']['id'])) {
+                return $_SESSION['user']['id'];
+            }
+        }
+
+        // Fallback for flat 'user_role' -> check 'user'['role'] if present
+        if ($key === 'user_role' && isset($_SESSION['user']['role'])) {
+            return $_SESSION['user']['role'];
+        }
+
+        return $default;
     }
 
     public static function has(string $key): bool
     {
-        return isset($_SESSION[$key]);
+        if (isset($_SESSION[$key])) {
+            return true;
+        }
+
+        if (str_contains($key, '.')) {
+            $segments = explode('.', $key);
+            $current = $_SESSION;
+            foreach ($segments as $segment) {
+                if (is_array($current) && isset($current[$segment])) {
+                    $current = $current[$segment];
+                } else {
+                    // Check special fallbacks
+                    if ($key === 'user.role' && isset($_SESSION['user_role'])) {
+                        return true;
+                    }
+                    if ($key === 'user.id' && isset($_SESSION['user']['id'])) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 
     public static function remove(string $key): void
     {
         unset($_SESSION[$key]);
+    }
+
+    public static function flush(): void
+    {
+        $_SESSION = [];
+    }
+
+    public static function clear(): void
+    {
+        $_SESSION = [];
     }
 
     public static function flash(string $key, mixed $value): void
@@ -99,7 +191,7 @@ class Session
     public static function destroy(): void
     {
         $_SESSION = [];
-        if (ini_get('session.use_cookies')) {
+        if (!headers_sent() && ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
             setcookie(
                 session_name(),
@@ -111,7 +203,9 @@ class Session
                 $params['httponly']
             );
         }
-        session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         self::$started = false;
     }
 

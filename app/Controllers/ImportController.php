@@ -6,12 +6,18 @@ namespace App\Controllers;
 
 use App\Models\Member;
 use App\Services\Database;
+use App\Services\Session;
 use App\Services\TenantContext;
 
 class ImportController extends Controller
 {
     public function index(): string
     {
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
+        if ($userRole !== 'owner') {
+            $this->redirect('dashboard', ['error' => 'Only the gym owner can access member import tools.']);
+        }
+
         return $this->view('imports.index', [
             'pageTitle' => 'Batch Member Import — GymFlow',
         ]);
@@ -79,6 +85,11 @@ class ImportController extends Controller
      */
     public function upload(): void
     {
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
+        if ($userRole !== 'owner') {
+            $this->redirect('dashboard', ['error' => 'Only the gym owner can upload member files.']);
+        }
+
         $gymId = TenantContext::getGymId();
 
         if (empty($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {

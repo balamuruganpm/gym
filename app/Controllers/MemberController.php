@@ -90,7 +90,7 @@ class MemberController extends Controller
     public function store(): void
     {
         $gymId = TenantContext::getGymId();
-        $userId = (int) Session::get('user.id');
+        $userId = (int) (Session::get('user.id') ?? Session::get('user')['id'] ?? 0);
 
         $validator = Validator::make($_POST, [
             'first_name' => 'required|min:2|max:80',
@@ -368,5 +368,97 @@ class MemberController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Provision a user login account for a gym member to access the Member Portal.
+     */
+    public function createPortalAccount(string $id): void
+    {
+        $gymId = TenantContext::getGymId();
+        $memberId = (int) $id;
+
+        $member = Member::getById($memberId, $gymId);
+        if (!$member) {
+            $this->redirect('members', ['error' => 'Member not found.']);
+            return;
+        }
+
+        if (!empty($member['user_id'])) {
+            $this->redirect("members/{$memberId}", ['error' => 'This member already has a portal user account linked.']);
+            return;
+        }
+
+        $email = trim((string) ($_POST['email'] ?? $member['email'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->redirect("members/{$memberId}", ['error' => 'A valid email address is required to create a portal account.']);
+            return;
+        }
+
+        if (strlen($password) < 8) {
+            $this->redirect("members/{$memberId}", ['error' => 'Password must be at least 8 characters long.']);
+            return;
+        }
+
+        // Check if email already used in users
+        $existingUser = Database::fetchOne("SELECT id FROM `users` WHERE `email` = :e LIMIT 1", [':e' => $email]);
+        if ($existingUser) {
+            $this->redirect("members/{$memberId}", ['error' => 'A user account with this email already exists.']);
+            return;
+        }
+
+        try {
+            Database::transaction(function (\PDO $pdo) use ($gymId, $memberId, $member, $email, $password) {
+                // 1. Create user
+                $name = trim($member['first_name'] . ' ' . $member['last_name']);
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+
+                $stmt = $pdo->prepare("
+                    INSERT INTO `users` (`name`, `email`, `password_hash`, `phone`, `status`, `created_at`)
+                    VALUES (:name, :email, :hash, :phone, 'active', NOW())
+                ");
+                $stmt->execute([
+                    ':name' => $name,
+                    ':email' => $email,
+                    ':hash' => $hash,
+                    ':phone' => $member['phone'],
+                ]);
+
+                $newUserId = (int) $pdo->lastInsertId();
+
+                // 2. Link in gym_users with role 'member'
+                $stmtGu = $pdo->prepare("
+                    INSERT INTO `gym_users` (`gym_id`, `user_id`, `role`, `is_active`, `created_at`)
+                    VALUES (:g, :u, 'member', 1, NOW())
+                ");
+                $stmtGu->execute([':g' => $gymId, ':u' => $newUserId]);
+
+                // 3. Link user_id in members
+                $stmtMem = $pdo->prepare("
+                    UPDATE `members` SET `user_id` = :u, `updated_at` = NOW()
+                    WHERE `id` = :id AND `gym_id` = :g
+                ");
+                $stmtMem->execute([':u' => $newUserId, ':id' => $memberId, ':g' => $gymId]);
+
+                // 4. Audit Log
+                $currentActorId = (int) (Session::get('user.id') ?? Session::get('user')['id'] ?? 0);
+                $stmtAudit = $pdo->prepare("
+                    INSERT INTO `audit_logs` (`gym_id`, `user_id`, `action`, `entity_type`, `entity_id`, `details`, `created_at`)
+                    VALUES (:g, :u, 'member.portal_account_created', 'member', :id, :details, NOW())
+                ");
+                $stmtAudit->execute([
+                    ':g' => $gymId,
+                    ':u' => $currentActorId ?: null,
+                    ':id' => $memberId,
+                    ':details' => json_encode(['email' => $email, 'user_id' => $newUserId]),
+                ]);
+            });
+
+            $this->redirect("members/{$memberId}", ['success' => 'Portal account created successfully! The member can now log in at /login.']);
+        } catch (\Throwable $e) {
+            $this->redirect("members/{$memberId}", ['error' => 'Failed to create portal account: ' . $e->getMessage()]);
+        }
     }
 }

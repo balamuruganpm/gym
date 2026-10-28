@@ -201,7 +201,10 @@ runTest("Live HTTP Server Availability & Response Check", function () {
         ]
     ]);
     $res = @file_get_contents('http://127.0.0.1:8080/login', false, $ctx);
-    assert($res !== false, "Web server did not respond at http://127.0.0.1:8080/login");
+    if ($res === false) {
+        $res = @file_get_contents('http://localhost/Projects%20All/per/gym/public/login', false, $ctx);
+    }
+    assert($res !== false, "Web server did not respond at 8080 or localhost");
     assert(str_contains($res, 'GymFlow'), "Expected 'GymFlow' in login page response");
     assert(str_contains($res, 'Login to your gym account') || str_contains($res, 'Welcome Back'), "Expected sign in form text");
 });

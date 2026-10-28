@@ -67,7 +67,7 @@ class RenewalController extends Controller
     public function renew(): void
     {
         $gymId = TenantContext::getGymId();
-        $userId = (int) Session::get('user.id');
+        $userId = (int) (Session::get('user.id') ?? Session::get('user')['id'] ?? 0);
 
         $memberId = (int) ($_POST['member_id'] ?? 0);
         $planId = (int) ($_POST['plan_id'] ?? 0);

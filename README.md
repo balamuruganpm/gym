@@ -90,10 +90,46 @@ gym/
 | [**Phase 5**](file:///d:/Bala/laragon/www/Projects%20All/per/gym/docs/phases/phase-05-dashboard-analytics-import-export.md) | **Dashboard & Import/Export** | Real-time futuristic KPI cards, Chart.js collection trends, Collections & Dues reports, Batch CSV import with validation & auto-generation | 🟢 Completed |
 | [**Phase 6**](file:///d:/Bala/laragon/www/Projects%20All/per/gym/docs/phases/phase-06-audit-logs-staff-settings-ui-polish.md) | **Staff, Audit Logs & Settings** | Staff management, Audit trail logger, Gym profile settings, Mobile responsiveness & futuristic micro-animations | 🟢 Completed |
 | [**Phase 7**](file:///d:/Bala/laragon/www/Projects%20All/per/gym/docs/phases/phase-07-testing-hardening-deployment.md) | **Testing, Hardening & Docs** | Comprehensive master automated test suite, Cross-gym isolation tests, CSRF/XSS audit, Deployment runbook, User documentation | 🟢 Completed |
+| [**Phase 8**](file:///d:/Bala/laragon/www/Projects%20All/per/gym/docs/phases/phase-08-four-role-architecture.md) | **Four-Role Product Architecture** | SupremeLeader platform console, Owner provisioning CLI, Trainer scheduling & progress, Member self-service portal, Offline payment requests | 🟢 Completed |
 
 ---
 
-## 💻 Quick Start & Setup
+## 👥 Four-Role Product Architecture
+
+GymFlow operates as a dedicated single-gym product with four distinct roles:
+
+1. **SupremeLeader (Platform Administrator & Support Operator):**
+   - Exactly one active system administrator account.
+   - Real-time system health (PHP, MySQL, disk storage, database statistics).
+   - Safe daily rotating log viewer (`storage/logs/`) with severity filters, line bounding, and request ID search.
+   - Protected Owner account activation/deactivation workflow.
+   - Audited Support Context Mode allowing temporary owner workspace inspection with mandatory reason and exit action.
+   - Provisioned securely via CLI: `php bin/provision-supreme-leader.php`.
+
+2. **Owner (Gym Command Center):**
+   - Full operational management of members, plans, payments, partial dues, renewals, and staff.
+   - Trainer-to-member assignment management.
+   - Offline payment requests review hub with atomic approval/rejection and automatic `BillingService` payment recording.
+   - Member portal account provisioning directly from member profiles.
+
+3. **Trainer (Trainer Workspace):**
+   - Dashboard displaying today's scheduled sessions and assigned trainees.
+   - Trainee-scoped member roster (strict isolation from non-assigned members).
+   - Weekly recurring availability & date-specific schedule exceptions.
+   - Session scheduling with automated conflict and overlap detection.
+   - Progress and measurement logging (weight, body fat %, workout summaries, coach feedback).
+
+4. **Member (Self-Service Member Portal):**
+   - Personal dashboard at `/portal/dashboard`.
+   - Live membership status, start/expiry dates, and real-time dues balance.
+   - Printable receipt access for all past payments.
+   - Scheduled personal training session calendar and progress tracking history.
+   - Offline payment request submission (Cash, UPI, Bank Transfer) with reference numbers and status tracking.
+   - Profile contact updates.
+
+---
+
+## 💻 Quick Start & Provisioning
 
 ### 1. Requirements
 - Laragon with PHP 8.3+ and MySQL 8.4+
@@ -106,7 +142,7 @@ The target database is configured as:
 - **Username:** `root`
 - **Password:** `123`
 
-### 3. Installation Steps
+### 3. Installation & Provisioning Steps
 ```bash
 # 1. Install dependencies
 composer install
@@ -114,17 +150,38 @@ composer install
 # 2. Configure environment
 cp .env.example .env
 
-# 3. Run database migrations
+# 3. Run all database migrations
 php database/migrate.php
 
-# 4. Seed development data
-php database/seeders/DatabaseSeeder.php
+# 4. Provision the SupremeLeader administrator
+php bin/provision-supreme-leader.php
+
+# 5. Provision the Gym Owner account
+php bin/provision-owner.php
 ```
 
-### 4. Default Seeded Credentials
-- **Gym:** Gold Fitness Gym
-- **Owner Account:** `owner@gymflow.test` / `password123`
-- **Staff Account:** `staff@gymflow.test` / `password123`
+### 4. Running Test Suites
+GymFlow includes comprehensive, non-destructive automated test suites verifying all architectural, tenant, and financial invariants:
+
+```bash
+# Master Regression Test Suite (Phases 1 - 7)
+php tests/GymFlowFullTestSuite.php
+
+# Phase A: Foundation Hardening, Session Dot-Notation & Daily Logger
+php tests/PhaseATest.php
+
+# Phase B: Four-Role Model, Provisioning & Route Isolation Matrix
+php tests/PhaseBTest.php
+
+# Phase C: Trainer Management, Availability, Scheduling & Progress
+php tests/PhaseCTest.php
+
+# Phase D: Member Portal, Offline Payment Requests & Approvals
+php tests/PhaseDTest.php
+
+# Phase E: SupremeLeader System Console, Logs & Full Verification
+php tests/PhaseETest.php
+```
 
 ---
 
@@ -132,5 +189,7 @@ php database/seeders/DatabaseSeeder.php
 - Strict tenant data isolation enforcing `WHERE gym_id = :gym_id` on all operations.
 - `DECIMAL(12,2)` used exclusively for financial amounts.
 - Database transactions (`PDO::beginTransaction`) for all multi-step financial mutations.
+- Offline payment requests remain pending and do not affect balances until explicitly approved.
 - CSRF token validation on all state-changing requests.
 - Strict prohibition of single-sided borders, pseudo-element border stripes, and visual clutter.
+

@@ -1,6 +1,8 @@
 <?php
 $gym = current_gym();
 $user = auth_user();
+$isSupreme = is_supreme_leader();
+$isSupportMode = (bool) \App\Services\Session::get('support_mode', false);
 ?>
 <header class="gf-topbar">
     <div class="d-flex align-items-center gap-3">
@@ -15,28 +17,47 @@ $user = auth_user();
             <input 
                 type="text" 
                 class="gf-search-input" 
-                placeholder="Search members, phone, or ID... (Ctrl+K)" 
+                placeholder="Search records, phone, or ID... (Ctrl+K)" 
                 id="globalSearchInput"
             >
         </div>
     </div>
 
     <div class="gf-topbar-actions">
-        <!-- Quick Notification Bell -->
-        <button type="button" class="gf-icon-btn position-relative" title="Notifications">
-            <i class="bi bi-bell"></i>
-            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                <span class="visually-hidden">New alerts</span>
-            </span>
-        </button>
+        <?php if ($isSupportMode): ?>
+            <!-- Audited Support Mode Pill -->
+            <div class="d-flex align-items-center gap-2 px-3 py-1 bg-warning-subtle text-warning-emphasis border border-warning rounded-pill small fw-semibold shadow-sm">
+                <i class="bi bi-eye-fill"></i>
+                <span>Support Mode: <?= e($gym['name'] ?? 'Gym #' . \App\Services\Session::get('gym_id')) ?></span>
+                <form action="<?= url('admin/exit-support') ?>" method="POST" class="d-inline m-0 p-0">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-sm btn-danger py-0 px-2 rounded-pill ms-2" style="font-size: 11px;">
+                        Exit
+                    </button>
+                </form>
+            </div>
+        <?php endif; ?>
 
-        <!-- Current Gym Pill -->
+        <!-- Current Context / Gym Badge -->
         <div class="gf-gym-badge">
             <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 24px; height: 24px; font-size: 11px;">
-                <i class="bi bi-building"></i>
+                <?php if ($isSupreme && !$isSupportMode): ?>
+                    <i class="bi bi-shield-shaded"></i>
+                <?php elseif (user_role() === 'trainer'): ?>
+                    <i class="bi bi-person-workspace"></i>
+                <?php elseif (user_role() === 'member'): ?>
+                    <i class="bi bi-person"></i>
+                <?php else: ?>
+                    <i class="bi bi-building"></i>
+                <?php endif; ?>
             </div>
-            <span><?= e($gym['name'] ?? 'Gold Fitness Gym') ?></span>
-            <i class="bi bi-chevron-down text-muted" style="font-size: 11px;"></i>
+            <span>
+                <?php if ($isSupreme && !$isSupportMode): ?>
+                    System Console
+                <?php else: ?>
+                    <?= e($gym['name'] ?? 'GymFlow Hub') ?>
+                <?php endif; ?>
+            </span>
         </div>
     </div>
 </header>

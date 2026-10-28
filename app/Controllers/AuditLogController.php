@@ -13,7 +13,7 @@ class AuditLogController extends Controller
     public function index(): string
     {
         $gymId = TenantContext::getGymId();
-        $userRole = (string) Session::get('user.role');
+        $userRole = (string) (Session::get('user.role') ?? Session::get('user_role') ?? '');
 
         if ($userRole !== 'owner') {
             http_response_code(403);

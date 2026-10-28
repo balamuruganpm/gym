@@ -14,8 +14,15 @@ class AuthMiddleware implements MiddlewareInterface
         $user = Session::get('user');
         $gym = Session::get('gym');
 
-        if (!$user || !$gym) {
+        if (!$user) {
             Session::flash('error', 'Please log in to continue.');
+            header('Location: ' . url('login'));
+            exit;
+        }
+
+        $isSupreme = (bool) (Session::get('is_supreme_leader') ?? ($user['is_supreme_leader'] ?? false));
+        if (!$isSupreme && !$gym) {
+            Session::flash('error', 'No active gym session found. Please log in again.');
             header('Location: ' . url('login'));
             exit;
         }

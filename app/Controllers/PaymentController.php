@@ -112,7 +112,7 @@ class PaymentController extends Controller
     public function store(): void
     {
         $gymId = TenantContext::getGymId();
-        $userId = (int) Session::get('user.id');
+        $userId = (int) (Session::get('user.id') ?? Session::get('user')['id'] ?? 0);
 
         $validator = Validator::make($_POST, [
             'member_id' => 'required',
